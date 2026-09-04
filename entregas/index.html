@@ -1,0 +1,623 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Painel de Entregas</title>
+<style>
+  :root{
+    --asfalto: #16181c;
+    --asfalto2: #1e2126;
+    --linha: #2a2e35;
+    --amber: #f0a500;
+    --amber-dim: #7a5c1f;
+    --verde: #4fae6f;
+    --vermelho: #d9634a;
+    --texto: #e8e6df;
+    --texto-fraco: #8b8f98;
+    --mono: 'SF Mono', 'Consolas', 'Menlo', monospace;
+    --sans: -apple-system, 'Segoe UI', Roboto, sans-serif;
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0;
+    background:
+      repeating-linear-gradient(90deg, transparent, transparent 38px, rgba(255,255,255,0.02) 38px, rgba(255,255,255,0.02) 40px),
+      var(--asfalto);
+    color:var(--texto);
+    font-family:var(--sans);
+    min-height:100vh;
+    padding:20px 14px 60px;
+  }
+  .wrap{max-width:480px;margin:0 auto;}
+  header{margin-bottom:20px;}
+  .eyebrow{
+    font-family:var(--mono);
+    font-size:11px;
+    letter-spacing:2px;
+    color:var(--amber);
+    text-transform:uppercase;
+  }
+  h1{
+    font-size:24px;
+    margin:4px 0 2px;
+    font-weight:700;
+    letter-spacing:-0.3px;
+  }
+  .sub{color:var(--texto-fraco);font-size:13px;}
+
+  .card{
+    background:var(--asfalto2);
+    border:1px solid var(--linha);
+    border-radius:14px;
+    padding:18px;
+    margin-bottom:14px;
+  }
+  .field{margin-bottom:14px;}
+  .field:last-child{margin-bottom:0;}
+  label{
+    display:block;
+    font-size:12px;
+    color:var(--texto-fraco);
+    margin-bottom:6px;
+    letter-spacing:0.3px;
+  }
+  input, select{
+    width:100%;
+    background:var(--asfalto);
+    border:1px solid var(--linha);
+    color:var(--texto);
+    padding:12px 12px;
+    border-radius:9px;
+    font-size:16px;
+    font-family:var(--mono);
+  }
+  input:focus, select:focus{outline:none;border-color:var(--amber);}
+  select{font-family:var(--sans);}
+
+  .rate-toggle{display:flex;gap:8px;}
+  .rate-opt{
+    flex:1;
+    text-align:center;
+    padding:12px 8px;
+    border-radius:9px;
+    border:1px solid var(--linha);
+    background:var(--asfalto);
+    cursor:pointer;
+    font-size:13px;
+    line-height:1.3;
+  }
+  .rate-opt b{display:block;font-family:var(--mono);font-size:15px;margin-top:2px;}
+  .rate-opt.active{border-color:var(--amber);background:rgba(240,165,0,0.08);}
+
+  button.calc{
+    width:100%;
+    background:var(--amber);
+    color:#1a1400;
+    border:none;
+    padding:14px;
+    border-radius:9px;
+    font-size:15px;
+    font-weight:700;
+    letter-spacing:0.3px;
+    cursor:pointer;
+    margin-top:4px;
+  }
+  button.calc:active{opacity:0.85;}
+
+  .resultado{display:none;}
+  .resultado.show{display:block;}
+  .ganho-linha{
+    display:flex;
+    justify-content:space-between;
+    align-items:baseline;
+    margin-bottom:10px;
+  }
+  .ganho-label{font-size:12px;color:var(--texto-fraco);}
+  .ganho-valor{font-family:var(--mono);font-size:30px;font-weight:700;color:var(--verde);}
+  .barra{
+    height:8px;
+    border-radius:4px;
+    background:var(--asfalto);
+    border:1px solid var(--linha);
+    overflow:hidden;
+    margin-bottom:4px;
+  }
+  .barra-fill{height:100%;background:var(--amber);border-radius:4px;}
+  .barra-legenda{
+    display:flex;justify-content:space-between;
+    font-size:11px;color:var(--texto-fraco);font-family:var(--mono);
+    margin-bottom:16px;
+  }
+  .breakdown{border-top:1px dashed var(--linha);padding-top:12px;}
+  .bd-linha{
+    display:flex;justify-content:space-between;
+    font-size:13px;padding:5px 0;color:var(--texto-fraco);
+  }
+  .bd-linha b{color:var(--texto);font-family:var(--mono);font-weight:600;}
+  .bd-linha.total{border-top:1px solid var(--linha);margin-top:6px;padding-top:10px;}
+  .bd-linha.total b{color:var(--verde);font-size:16px;}
+
+  .save-btn{
+    width:100%;
+    background:transparent;
+    border:1px solid var(--verde);
+    color:var(--verde);
+    padding:11px;
+    border-radius:9px;
+    font-size:14px;
+    font-weight:600;
+    cursor:pointer;
+    margin-top:14px;
+  }
+  .save-btn:disabled{opacity:0.4;}
+
+  .hist-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;}
+  .hist-header h2{font-size:14px;margin:0;color:var(--texto-fraco);letter-spacing:0.5px;text-transform:uppercase;}
+  .totais{display:flex;gap:8px;margin-bottom:14px;}
+  .totais .t{
+    flex:1;background:var(--asfalto);border:1px solid var(--linha);
+    border-radius:9px;padding:10px;text-align:center;
+  }
+  .totais .t .n{font-family:var(--mono);font-size:17px;font-weight:700;}
+  .totais .t .l{font-size:10px;color:var(--texto-fraco);margin-top:2px;}
+
+  .entry{
+    display:flex;justify-content:space-between;align-items:center;
+    padding:11px 0;border-bottom:1px solid var(--linha);
+    font-size:13px;
+  }
+  .entry:last-child{border-bottom:none;}
+  .entry .info b{display:block;font-size:14px;}
+  .entry .info span{color:var(--texto-fraco);font-size:11px;}
+  .entry .valor{text-align:right;}
+  .entry .valor b{font-family:var(--mono);color:var(--verde);font-size:15px;}
+  .entry .del{
+    background:none;border:none;color:var(--vermelho);
+    font-size:16px;padding:0 0 0 12px;cursor:pointer;
+  }
+  .vazio{color:var(--texto-fraco);font-size:13px;text-align:center;padding:20px 0;}
+
+  .semana{
+    border:1px solid var(--linha);
+    border-radius:11px;
+    padding:14px;
+    margin-bottom:10px;
+    background:var(--asfalto);
+  }
+  .semana:last-child{margin-bottom:0;}
+  .semana-topo{
+    display:flex;justify-content:space-between;align-items:baseline;
+    margin-bottom:10px;
+  }
+  .semana-periodo{font-size:12px;color:var(--texto-fraco);font-family:var(--mono);}
+  .semana-lucro{font-family:var(--mono);font-size:18px;font-weight:700;color:var(--verde);}
+  .semana-grid{
+    display:grid;grid-template-columns:1fr 1fr;gap:6px 14px;
+  }
+  .semana-item{
+    display:flex;justify-content:space-between;
+    font-size:12.5px;color:var(--texto-fraco);
+  }
+  .semana-item b{color:var(--texto);font-family:var(--mono);font-weight:600;}
+  .semana-media{
+    margin-top:10px;padding-top:10px;border-top:1px dashed var(--linha);
+    font-size:12px;color:var(--amber);
+  }
+
+  /* Toast de feedback */
+  .toast{
+    position:fixed;bottom:24px;left:50%;transform:translateX(-50%);
+    background:#1e2126;border:1px solid var(--verde);color:var(--verde);
+    padding:10px 20px;border-radius:30px;font-size:13px;font-weight:600;
+    opacity:0;transition:opacity .3s;pointer-events:none;white-space:nowrap;
+    z-index:999;
+  }
+  .toast.show{opacity:1;}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div class="eyebrow">Painel do entregador</div>
+    <h1>Quanto rendeu hoje</h1>
+    <div class="sub" id="subInfo">Twister 250 · 31 km/L · manutenção R$0,12/km</div>
+  </header>
+
+  <div class="card">
+    <div class="field">
+      <label>Preço da gasolina hoje (R$/L)</label>
+      <input type="number" id="precoGas" inputmode="decimal" step="0.01" value="6.55">
+    </div>
+    <div class="field">
+      <label>Data</label>
+      <input type="date" id="data">
+    </div>
+    <div class="field">
+      <label>Faixa de taxa</label>
+      <div class="rate-toggle">
+        <div class="rate-opt" data-rate="7.5" id="opt-baixa">
+          Terça a quinta<b>R$ 7,50</b>
+        </div>
+        <div class="rate-opt" data-rate="8.5" id="opt-alta">
+          Sexta a domingo<b>R$ 8,50</b>
+        </div>
+      </div>
+    </div>
+    <div class="field">
+      <label>Entregas feitas</label>
+      <input type="number" id="entregas" inputmode="numeric" placeholder="0">
+    </div>
+    <div class="field">
+      <label>Km rodados</label>
+      <input type="number" id="km" inputmode="decimal" placeholder="0">
+    </div>
+    <button class="calc" id="btnCalc">Calcular</button>
+
+    <div class="resultado" id="resultado">
+      <div class="ganho-linha" style="margin-top:18px;">
+        <div>
+          <div class="ganho-label">Lucro líquido do dia</div>
+          <div class="ganho-valor" id="lucroLiquido">R$ 0,00</div>
+        </div>
+      </div>
+      <div class="barra"><div class="barra-fill" id="barraFill" style="width:0%"></div></div>
+      <div class="barra-legenda">
+        <span>Fixo R$ 100</span>
+        <span id="barraTexto">acima do fixo</span>
+      </div>
+      <div class="breakdown">
+        <div class="bd-linha"><span>Valor por entregas</span><b id="bdEntregas">R$ 0,00</b></div>
+        <div class="bd-linha"><span>Ganho do dia (maior valor)</span><b id="bdGanho">R$ 0,00</b></div>
+        <div class="bd-linha"><span>Litros consumidos</span><b id="bdLitros">0,00 L</b></div>
+        <div class="bd-linha"><span>Combustível</span><b id="bdComb">R$ 0,00</b></div>
+        <div class="bd-linha"><span>Manutenção</span><b id="bdManut">R$ 0,00</b></div>
+        <div class="bd-linha"><span>Custo total</span><b id="bdCustoTotal">R$ 0,00</b></div>
+        <div class="bd-linha total"><span>Lucro líquido</span><b id="bdLucro">R$ 0,00</b></div>
+      </div>
+      <div class="breakdown">
+        <div class="bd-linha"><span>Ganho por entrega</span><b id="bdPorEntrega">R$ 0,00</b></div>
+        <div class="bd-linha"><span>Custo por km rodado</span><b id="bdCustoKm">R$ 0,00</b></div>
+        <div class="bd-linha"><span>Lucro por km rodado</span><b id="bdLucroKm">R$ 0,00</b></div>
+        <div class="bd-linha"><span>% do ganho gasto em custo</span><b id="bdPctCusto">0%</b></div>
+      </div>
+      <button class="save-btn" id="btnSalvar">Salvar no histórico</button>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="hist-header"><h2>Resumo semanal</h2></div>
+    <div id="listaSemanas"><div class="vazio">Sem dados ainda.</div></div>
+  </div>
+
+  <div class="card">
+    <div class="hist-header"><h2>Histórico</h2></div>
+    <div class="totais" id="totais" style="display:none;">
+      <div class="t"><div class="n" id="totDias">0</div><div class="l">dias</div></div>
+      <div class="t"><div class="n" id="totKm">0</div><div class="l">km</div></div>
+      <div class="t"><div class="n" id="totLucro">R$0</div><div class="l">lucro total</div></div>
+    </div>
+    <div class="totais" id="totais2" style="display:none;">
+      <div class="t"><div class="n" id="totEntregas">0</div><div class="l">entregas</div></div>
+      <div class="t"><div class="n" id="totLitros">0</div><div class="l">litros</div></div>
+      <div class="t"><div class="n" id="totComb">R$0</div><div class="l">gasto combustível</div></div>
+    </div>
+    <div id="listaHistorico"><div class="vazio">Nenhum dia salvo ainda.</div></div>
+  </div>
+</div>
+
+<!-- Toast -->
+<div class="toast" id="toast"></div>
+
+<script>
+// ─── Constantes ────────────────────────────────────────────────────────────
+const FUEL_EFF   = 31;
+const MAINT_KM   = 0.12;
+const FIXO       = 100;
+const LS_ENTRIES = 'painel_entregas_v1';
+const LS_CONFIG  = 'painel_config_v1';
+
+let rateSelecionada = null;
+let ultimoCalculo   = null;
+
+// ─── Toast ─────────────────────────────────────────────────────────────────
+function showToast(msg, cor) {
+  cor = cor || 'var(--verde)';
+  const t = document.getElementById('toast');
+  t.textContent    = msg;
+  t.style.color       = cor;
+  t.style.borderColor = cor;
+  t.classList.add('show');
+  clearTimeout(t._timer);
+  t._timer = setTimeout(function(){ t.classList.remove('show'); }, 2200);
+}
+
+// ─── localStorage helpers ──────────────────────────────────────────────────
+function carregarHistorico() {
+  try {
+    var raw = localStorage.getItem(LS_ENTRIES);
+    return raw ? JSON.parse(raw) : [];
+  } catch(e) { return []; }
+}
+
+function salvarHistorico(lista) {
+  try {
+    localStorage.setItem(LS_ENTRIES, JSON.stringify(lista));
+    return true;
+  } catch(e) {
+    console.error('Erro ao salvar:', e);
+    return false;
+  }
+}
+
+function carregarConfig() {
+  try {
+    var raw = localStorage.getItem(LS_CONFIG);
+    return raw ? JSON.parse(raw) : {};
+  } catch(e) { return {}; }
+}
+
+function salvarConfig(cfg) {
+  try { localStorage.setItem(LS_CONFIG, JSON.stringify(cfg)); } catch(e) {}
+}
+
+// ─── Data ──────────────────────────────────────────────────────────────────
+var dataInput = document.getElementById('data');
+dataInput.value = new Date().toISOString().slice(0, 10);
+
+var optBaixa = document.getElementById('opt-baixa');
+var optAlta  = document.getElementById('opt-alta');
+
+function selecionarRate(opt, valor) {
+  rateSelecionada = valor;
+  optBaixa.classList.toggle('active', opt === optBaixa);
+  optAlta.classList.toggle('active',  opt === optAlta);
+}
+
+optBaixa.addEventListener('click', function(){ selecionarRate(optBaixa, 7.5); });
+optAlta.addEventListener('click',  function(){ selecionarRate(optAlta,  8.5); });
+
+dataInput.addEventListener('change', function(){
+  var d   = new Date(dataInput.value + 'T12:00:00');
+  var dia = d.getDay();
+  if (dia === 2 || dia === 3 || dia === 4) selecionarRate(optBaixa, 7.5);
+  else if (dia === 5 || dia === 6 || dia === 0) selecionarRate(optAlta, 8.5);
+});
+dataInput.dispatchEvent(new Event('change'));
+
+// ─── Formatação ────────────────────────────────────────────────────────────
+function fmt(v) {
+  return 'R$ ' + v.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+}
+
+// ─── Semanas ───────────────────────────────────────────────────────────────
+function getSegundaDaSemana(dataStr) {
+  var d    = new Date(dataStr + 'T12:00:00');
+  var dia  = d.getDay();
+  var diff = dia === 0 ? -6 : 1 - dia;
+  var seg  = new Date(d);
+  seg.setDate(d.getDate() + diff);
+  return seg;
+}
+
+function fmtDia(d) {
+  return d.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' });
+}
+
+function agruparPorSemana(lista) {
+  var grupos = {};
+  lista.forEach(function(e) {
+    var segunda = getSegundaDaSemana(e.data);
+    var key     = segunda.toISOString().slice(0, 10);
+    if (!grupos[key]) grupos[key] = { segunda: segunda, itens: [] };
+    grupos[key].itens.push(e);
+  });
+  return Object.values(grupos).sort(function(a, b){ return b.segunda - a.segunda; });
+}
+
+function renderSemanas(lista) {
+  var container = document.getElementById('listaSemanas');
+  if (!lista.length) {
+    container.innerHTML = '<div class="vazio">Sem dados ainda.</div>';
+    return;
+  }
+  var grupos = agruparPorSemana(lista);
+  container.innerHTML = grupos.map(function(g) {
+    var domingo  = new Date(g.segunda);
+    domingo.setDate(g.segunda.getDate() + 6);
+    var itens      = g.itens;
+    var dias       = itens.length;
+    var entregas   = itens.reduce(function(s,e){ return s+e.entregas; }, 0);
+    var km         = itens.reduce(function(s,e){ return s+e.km; }, 0);
+    var litros     = itens.reduce(function(s,e){ return s+(e.litros||0); }, 0);
+    var custoComb  = itens.reduce(function(s,e){ return s+e.custoComb; }, 0);
+    var custoManut = itens.reduce(function(s,e){ return s+e.custoManut; }, 0);
+    var lucro      = itens.reduce(function(s,e){ return s+e.lucroLiquido; }, 0);
+    var mediaLucroDia  = lucro / dias;
+    var mediaLitrosDia = litros / dias;
+    var precoMedio     = litros > 0 ? custoComb / litros : 0;
+
+    return '<div class="semana">'
+      + '<div class="semana-topo">'
+      +   '<span class="semana-periodo">' + fmtDia(g.segunda) + ' \u2013 ' + fmtDia(domingo) + '</span>'
+      +   '<span class="semana-lucro">' + fmt(lucro) + '</span>'
+      + '</div>'
+      + '<div class="semana-grid">'
+      +   '<div class="semana-item"><span>Dias trabalhados</span><b>' + dias + '</b></div>'
+      +   '<div class="semana-item"><span>Entregas</span><b>' + entregas + '</b></div>'
+      +   '<div class="semana-item"><span>Km rodados</span><b>' + km.toFixed(0) + '</b></div>'
+      +   '<div class="semana-item"><span>Litros</span><b>' + litros.toFixed(1) + 'L</b></div>'
+      +   '<div class="semana-item"><span>Gasto combustível</span><b>' + fmt(custoComb) + '</b></div>'
+      +   '<div class="semana-item"><span>Manutenção</span><b>' + fmt(custoManut) + '</b></div>'
+      +   '<div class="semana-item"><span>Preço médio/L</span><b>' + fmt(precoMedio) + '</b></div>'
+      +   '<div class="semana-item"><span>Média litros/dia</span><b>' + mediaLitrosDia.toFixed(1) + 'L</b></div>'
+      + '</div>'
+      + '<div class="semana-media">Média de lucro por dia trabalhado: <b>' + fmt(mediaLucroDia) + '</b></div>'
+      + '</div>';
+  }).join('');
+}
+
+// ─── Histórico ─────────────────────────────────────────────────────────────
+function renderHistorico(lista) {
+  var container = document.getElementById('listaHistorico');
+  var totais    = document.getElementById('totais');
+  var totais2   = document.getElementById('totais2');
+
+  if (!lista.length) {
+    container.innerHTML   = '<div class="vazio">Nenhum dia salvo ainda.</div>';
+    totais.style.display  = 'none';
+    totais2.style.display = 'none';
+    return;
+  }
+
+  var ordenada = lista.slice().sort(function(a, b){ return b.data.localeCompare(a.data); });
+  container.innerHTML = ordenada.map(function(e) {
+    var dataFmt = new Date(e.data + 'T12:00:00')
+      .toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' });
+    return '<div class="entry">'
+      + '<div class="info">'
+      +   '<b>' + dataFmt + ' \u00b7 ' + e.entregas + ' entregas</b>'
+      +   '<span>' + e.km + ' km \u00b7 taxa R$' + e.rate.toFixed(2) + ' \u00b7 gasolina R$' + (e.precoGas||6.55).toFixed(2) + '/L</span>'
+      + '</div>'
+      + '<div class="valor"><b>' + fmt(e.lucroLiquido) + '</b></div>'
+      + '<button class="del" data-id="' + e.id + '" title="excluir">\u2715</button>'
+      + '</div>';
+  }).join('');
+
+  var totKm       = lista.reduce(function(s,e){ return s+e.km; }, 0);
+  var totLucro    = lista.reduce(function(s,e){ return s+e.lucroLiquido; }, 0);
+  var totEntregas = lista.reduce(function(s,e){ return s+e.entregas; }, 0);
+  var totLitros   = lista.reduce(function(s,e){ return s+(e.litros||0); }, 0);
+  var totComb     = lista.reduce(function(s,e){ return s+e.custoComb; }, 0);
+
+  document.getElementById('totDias').textContent     = lista.length;
+  document.getElementById('totKm').textContent       = totKm.toFixed(0);
+  document.getElementById('totLucro').textContent    = 'R$' + totLucro.toFixed(0);
+  document.getElementById('totEntregas').textContent = totEntregas.toFixed(0);
+  document.getElementById('totLitros').textContent   = totLitros.toFixed(1) + 'L';
+  document.getElementById('totComb').textContent     = 'R$' + totComb.toFixed(0);
+  totais.style.display  = 'flex';
+  totais2.style.display = 'flex';
+
+  container.querySelectorAll('.del').forEach(function(btn) {
+    btn.addEventListener('click', function() {
+      var lista2 = carregarHistorico().filter(function(e){ return e.id !== btn.dataset.id; });
+      salvarHistorico(lista2);
+      renderHistorico(lista2);
+      renderSemanas(lista2);
+      showToast('Entrada removida', 'var(--vermelho)');
+    });
+  });
+}
+
+// ─── Calcular ──────────────────────────────────────────────────────────────
+document.getElementById('btnCalc').addEventListener('click', function() {
+  var entregas = parseFloat(document.getElementById('entregas').value) || 0;
+  var km       = parseFloat(document.getElementById('km').value)       || 0;
+
+  if (!rateSelecionada) {
+    alert('Selecione a faixa de taxa (terça a quinta ou sexta a domingo).');
+    return;
+  }
+
+  var precoGas     = parseFloat(document.getElementById('precoGas').value) || 6.55;
+  var valorEntregas = entregas * rateSelecionada;
+  var ganhoDia      = Math.max(FIXO, valorEntregas);
+  var litros        = km / FUEL_EFF;
+  var custoComb     = litros * precoGas;
+  var custoManut    = km * MAINT_KM;
+  var custoTotal    = custoComb + custoManut;
+  var lucroLiquido  = ganhoDia - custoTotal;
+  var porEntrega    = entregas > 0 ? ganhoDia / entregas : 0;
+  var custoKm       = km > 0 ? custoTotal / km : 0;
+  var lucroKm       = km > 0 ? lucroLiquido / km : 0;
+  var pctCusto      = ganhoDia > 0 ? (custoTotal / ganhoDia) * 100 : 0;
+
+  document.getElementById('bdEntregas').textContent   = fmt(valorEntregas);
+  document.getElementById('bdGanho').textContent      = fmt(ganhoDia);
+  document.getElementById('bdLitros').textContent     = litros.toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2}) + ' L';
+  document.getElementById('bdComb').textContent       = fmt(custoComb);
+  document.getElementById('bdManut').textContent      = fmt(custoManut);
+  document.getElementById('bdCustoTotal').textContent = fmt(custoTotal);
+  document.getElementById('bdLucro').textContent      = fmt(lucroLiquido);
+  document.getElementById('lucroLiquido').textContent  = fmt(lucroLiquido);
+  document.getElementById('bdPorEntrega').textContent  = fmt(porEntrega);
+  document.getElementById('bdCustoKm').textContent    = fmt(custoKm);
+  document.getElementById('bdLucroKm').textContent    = fmt(lucroKm);
+  document.getElementById('bdPctCusto').textContent   = pctCusto.toFixed(1) + '%';
+
+  var pctAcimaFixo = valorEntregas > FIXO
+    ? Math.min(100, (valorEntregas / FIXO) * 50)
+    : (valorEntregas / FIXO) * 100;
+  document.getElementById('barraFill').style.width  = Math.min(100, pctAcimaFixo) + '%';
+  document.getElementById('barraTexto').textContent = valorEntregas > FIXO
+    ? ('+' + fmt(valorEntregas - FIXO) + ' acima do fixo')
+    : 'dentro do fixo';
+
+  document.getElementById('resultado').classList.add('show');
+
+  ultimoCalculo = {
+    id: 'e_' + Date.now(),
+    data: dataInput.value,
+    rate: rateSelecionada,
+    entregas: entregas, km: km, precoGas: precoGas, litros: litros,
+    valorEntregas: valorEntregas, ganhoDia: ganhoDia,
+    custoComb: custoComb, custoManut: custoManut,
+    custoTotal: custoTotal, lucroLiquido: lucroLiquido
+  };
+
+  salvarConfig({ precoGas: precoGas });
+});
+
+// ─── Salvar no histórico ───────────────────────────────────────────────────
+document.getElementById('btnSalvar').addEventListener('click', function() {
+  if (!ultimoCalculo) return;
+
+  var btn   = document.getElementById('btnSalvar');
+  var lista = carregarHistorico();
+
+  // Detecta registro duplicado na mesma data
+  var duplicado = lista.find(function(e){ return e.data === ultimoCalculo.data; });
+  if (duplicado) {
+    var dataLegivel = new Date(ultimoCalculo.data + 'T12:00:00')
+      .toLocaleDateString('pt-BR');
+    var confirmar = confirm('Já existe um registro para ' + dataLegivel + '.\nDeseja substituir?');
+    if (!confirmar) return;
+    var filtrado = lista.filter(function(e){ return e.data !== ultimoCalculo.data; });
+    filtrado.push(ultimoCalculo);
+    var ok2 = salvarHistorico(filtrado);
+    renderHistorico(filtrado);
+    renderSemanas(filtrado);
+    showToast(ok2 ? 'Registro atualizado ✓' : 'Erro ao salvar', ok2 ? 'var(--verde)' : 'var(--vermelho)');
+    return;
+  }
+
+  lista.push(ultimoCalculo);
+  var ok = salvarHistorico(lista);
+  renderHistorico(lista);
+  renderSemanas(lista);
+
+  if (ok) {
+    btn.disabled    = true;
+    btn.textContent = 'Salvo ✓';
+    showToast('Dia salvo com sucesso ✓');
+    setTimeout(function(){
+      btn.disabled    = false;
+      btn.textContent = 'Salvar no histórico';
+    }, 1500);
+  } else {
+    showToast('Erro ao salvar — armazenamento cheio?', 'var(--vermelho)');
+  }
+});
+
+// ─── Inicialização ─────────────────────────────────────────────────────────
+(function init() {
+  var cfg = carregarConfig();
+  if (cfg.precoGas) document.getElementById('precoGas').value = cfg.precoGas;
+  var lista = carregarHistorico();
+  renderHistorico(lista);
+  renderSemanas(lista);
+})();
+</script>
+</body>
+</html>
