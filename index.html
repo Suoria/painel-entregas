@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
@@ -91,6 +90,57 @@
   .rate-opt b{display:block;font-family:var(--mono);font-size:15px;margin-top:2px;}
   .rate-opt.active{border-color:var(--amber);background:rgba(240,165,0,0.08);}
 
+  /* Atraso toggle */
+  .atraso-toggle{display:flex;gap:6px;flex-wrap:wrap;}
+  .atraso-opt{
+    flex:1;
+    min-width:0;
+    text-align:center;
+    padding:10px 6px;
+    border-radius:9px;
+    border:1px solid var(--linha);
+    background:var(--asfalto);
+    cursor:pointer;
+    font-size:11px;
+    line-height:1.3;
+    transition: all 0.2s;
+  }
+  .atraso-opt b{display:block;font-family:var(--mono);font-size:12px;margin-top:2px;}
+  .atraso-opt.active{border-color:var(--amber);background:rgba(240,165,0,0.08);}
+  .atraso-opt.atraso-ok{border-color:var(--verde);background:rgba(79,174,111,0.08);}
+  .atraso-opt.atraso-ok b{color:var(--verde);}
+  .atraso-opt.atraso-leve{border-color:var(--amber);background:rgba(240,165,0,0.08);}
+  .atraso-opt.atraso-leve b{color:var(--amber);}
+  .atraso-opt.atraso-grave{border-color:var(--vermelho);background:rgba(217,99,74,0.08);}
+  .atraso-opt.atraso-grave b{color:var(--vermelho);}
+  .atraso-info{
+    font-size:11px;
+    color:var(--texto-fraco);
+    margin-top:6px;
+    padding:8px 10px;
+    background:var(--asfalto);
+    border-radius:7px;
+    border:1px solid var(--linha);
+    line-height:1.4;
+  }
+  .atraso-info.info-ok{border-color:rgba(79,174,111,0.3);}
+  .atraso-info.info-leve{border-color:rgba(240,165,0,0.3);}
+  .atraso-info.info-grave{border-color:rgba(217,99,74,0.3);}
+  .atraso-info b{font-weight:600;}
+  .atraso-badge{
+    display:inline-block;
+    padding:2px 7px;
+    border-radius:5px;
+    font-size:10px;
+    font-weight:600;
+    letter-spacing:0.3px;
+    margin-left:6px;
+    vertical-align:middle;
+  }
+  .badge-ok{background:rgba(79,174,111,0.15);color:var(--verde);}
+  .badge-leve{background:rgba(240,165,0,0.15);color:var(--amber);}
+  .badge-grave{background:rgba(217,99,74,0.15);color:var(--vermelho);}
+
   button.calc{
     width:100%;
     background:var(--amber);
@@ -106,6 +156,7 @@
   }
   button.calc:active{opacity:0.85;}
 
+  /* gauge / resultado */
   .resultado{display:none;}
   .resultado.show{display:block;}
   .ganho-linha{
@@ -138,6 +189,7 @@
   .bd-linha b{color:var(--texto);font-family:var(--mono);font-weight:600;}
   .bd-linha.total{border-top:1px solid var(--linha);margin-top:6px;padding-top:10px;}
   .bd-linha.total b{color:var(--verde);font-size:16px;}
+  .bd-linha.desconto b{color:var(--vermelho);}
 
   .save-btn{
     width:100%;
@@ -153,6 +205,7 @@
   }
   .save-btn:disabled{opacity:0.4;}
 
+  /* historico */
   .hist-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;}
   .hist-header h2{font-size:14px;margin:0;color:var(--texto-fraco);letter-spacing:0.5px;text-transform:uppercase;}
   .totais{display:flex;gap:8px;margin-bottom:14px;}
@@ -178,6 +231,7 @@
     font-size:16px;padding:0 0 0 12px;cursor:pointer;
   }
   .vazio{color:var(--texto-fraco);font-size:13px;text-align:center;padding:20px 0;}
+  .loading{color:var(--texto-fraco);font-size:13px;text-align:center;padding:20px 0;font-family:var(--mono);}
 
   .semana{
     border:1px solid var(--linha);
@@ -205,16 +259,18 @@
     margin-top:10px;padding-top:10px;border-top:1px dashed var(--linha);
     font-size:12px;color:var(--amber);
   }
-
-  /* Toast de feedback */
-  .toast{
-    position:fixed;bottom:24px;left:50%;transform:translateX(-50%);
-    background:#1e2126;border:1px solid var(--verde);color:var(--verde);
-    padding:10px 20px;border-radius:30px;font-size:13px;font-weight:600;
-    opacity:0;transition:opacity .3s;pointer-events:none;white-space:nowrap;
-    z-index:999;
+  /* Total a receber destaque */
+  .semana-receber{
+    margin-top:10px;padding-top:10px;border-top:1px dashed var(--linha);
+    display:flex;justify-content:space-between;align-items:baseline;
   }
-  .toast.show{opacity:1;}
+  .semana-receber span{font-size:12px;color:var(--texto-fraco);}
+  .semana-receber b{
+    font-family:var(--mono);font-size:20px;font-weight:700;color:var(--amber);
+  }
+  .semana-receber-sub{
+    font-size:11px;color:var(--texto-fraco);margin-top:4px;
+  }
 </style>
 </head>
 <body>
@@ -246,6 +302,21 @@
       </div>
     </div>
     <div class="field">
+      <label>Horário de chegada (lanche)</label>
+      <div class="atraso-toggle">
+        <div class="atraso-opt" data-atraso="pontual" id="atraso-pontual">
+          Até 18:10<b>Sem desconto</b>
+        </div>
+        <div class="atraso-opt" data-atraso="leve" id="atraso-leve">
+          18:11 – 18:20<b>-R$ 10</b>
+        </div>
+        <div class="atraso-opt" data-atraso="grave" id="atraso-grave">
+          18:21+<b>Só entregas</b>
+        </div>
+      </div>
+      <div class="atraso-info" id="atrasoInfo" style="display:none;"></div>
+    </div>
+    <div class="field">
       <label>Entregas feitas</label>
       <input type="number" id="entregas" inputmode="numeric" placeholder="0">
     </div>
@@ -269,7 +340,9 @@
       </div>
       <div class="breakdown">
         <div class="bd-linha"><span>Valor por entregas</span><b id="bdEntregas">R$ 0,00</b></div>
-        <div class="bd-linha"><span>Ganho do dia (maior valor)</span><b id="bdGanho">R$ 0,00</b></div>
+        <div class="bd-linha"><span>Ganho do dia (antes desconto)</span><b id="bdGanhoBruto">R$ 0,00</b></div>
+        <div class="bd-linha desconto" id="linhaDesconto" style="display:none;"><span>Desconto atraso</span><b id="bdDesconto">R$ 0,00</b></div>
+        <div class="bd-linha"><span>Ganho do dia (final)</span><b id="bdGanho">R$ 0,00</b></div>
         <div class="bd-linha"><span>Litros consumidos</span><b id="bdLitros">0,00 L</b></div>
         <div class="bd-linha"><span>Combustível</span><b id="bdComb">R$ 0,00</b></div>
         <div class="bd-linha"><span>Manutenção</span><b id="bdManut">R$ 0,00</b></div>
@@ -288,7 +361,7 @@
 
   <div class="card">
     <div class="hist-header"><h2>Resumo semanal</h2></div>
-    <div id="listaSemanas"><div class="vazio">Sem dados ainda.</div></div>
+    <div id="listaSemanas"><div class="loading">carregando.</div></div>
   </div>
 
   <div class="card">
@@ -303,257 +376,265 @@
       <div class="t"><div class="n" id="totLitros">0</div><div class="l">litros</div></div>
       <div class="t"><div class="n" id="totComb">R$0</div><div class="l">gasto combustível</div></div>
     </div>
-    <div id="listaHistorico"><div class="vazio">Nenhum dia salvo ainda.</div></div>
+    <div id="listaHistorico"><div class="loading">carregando.</div></div>
   </div>
 </div>
 
-<!-- Toast -->
-<div class="toast" id="toast"></div>
-
 <script>
-// ─── Constantes ────────────────────────────────────────────────────────────
-const FUEL_EFF   = 31;
-const MAINT_KM   = 0.12;
-const FIXO       = 100;
-const LS_ENTRIES = 'painel_entregas_v1';
-const LS_CONFIG  = 'painel_config_v1';
+const FUEL_EFF = 31;
+const MAINT_KM = 0.12;
+const FIXO = 100;
 
 let rateSelecionada = null;
-let ultimoCalculo   = null;
+let atrasoSelecionado = 'pontual'; // pontual | leve | grave
+let ultimoCalculo = null;
 
-// ─── Toast ─────────────────────────────────────────────────────────────────
-function showToast(msg, cor) {
-  cor = cor || 'var(--verde)';
-  const t = document.getElementById('toast');
-  t.textContent    = msg;
-  t.style.color       = cor;
-  t.style.borderColor = cor;
-  t.classList.add('show');
-  clearTimeout(t._timer);
-  t._timer = setTimeout(function(){ t.classList.remove('show'); }, 2200);
-}
+const dataInput = document.getElementById('data');
+dataInput.value = new Date().toISOString().slice(0,10);
 
-// ─── localStorage helpers ──────────────────────────────────────────────────
-function carregarHistorico() {
-  try {
-    var raw = localStorage.getItem(LS_ENTRIES);
-    return raw ? JSON.parse(raw) : [];
-  } catch(e) { return []; }
-}
-
-function salvarHistorico(lista) {
-  try {
-    localStorage.setItem(LS_ENTRIES, JSON.stringify(lista));
-    return true;
-  } catch(e) {
-    console.error('Erro ao salvar:', e);
-    return false;
-  }
-}
-
-function carregarConfig() {
-  try {
-    var raw = localStorage.getItem(LS_CONFIG);
-    return raw ? JSON.parse(raw) : {};
-  } catch(e) { return {}; }
-}
-
-function salvarConfig(cfg) {
-  try { localStorage.setItem(LS_CONFIG, JSON.stringify(cfg)); } catch(e) {}
-}
-
-// ─── Data ──────────────────────────────────────────────────────────────────
-var dataInput = document.getElementById('data');
-dataInput.value = new Date().toISOString().slice(0, 10);
-
-var optBaixa = document.getElementById('opt-baixa');
-var optAlta  = document.getElementById('opt-alta');
-
-function selecionarRate(opt, valor) {
+const optBaixa = document.getElementById('opt-baixa');
+const optAlta = document.getElementById('opt-alta');
+function selecionarRate(opt, valor){
   rateSelecionada = valor;
-  optBaixa.classList.toggle('active', opt === optBaixa);
-  optAlta.classList.toggle('active',  opt === optAlta);
+  optBaixa.classList.toggle('active', opt===optBaixa);
+  optAlta.classList.toggle('active', opt===optAlta);
 }
+optBaixa.addEventListener('click', ()=>selecionarRate(optBaixa,7.5));
+optAlta.addEventListener('click', ()=>selecionarRate(optAlta,8.5));
 
-optBaixa.addEventListener('click', function(){ selecionarRate(optBaixa, 7.5); });
-optAlta.addEventListener('click',  function(){ selecionarRate(optAlta,  8.5); });
-
-dataInput.addEventListener('change', function(){
-  var d   = new Date(dataInput.value + 'T12:00:00');
-  var dia = d.getDay();
-  if (dia === 2 || dia === 3 || dia === 4) selecionarRate(optBaixa, 7.5);
-  else if (dia === 5 || dia === 6 || dia === 0) selecionarRate(optAlta, 8.5);
+// sugere faixa com base no dia da semana selecionado
+dataInput.addEventListener('change', ()=>{
+  const d = new Date(dataInput.value + 'T12:00:00');
+  const dia = d.getDay(); // 0=dom,1=seg,2=ter,3=qua,4=qui,5=sex,6=sab
+  if(dia===2||dia===3||dia===4) selecionarRate(optBaixa,7.5);
+  else if(dia===5||dia===6||dia===0) selecionarRate(optAlta,8.5);
+  // segunda-feira (1) fica sem sugestão automática
 });
 dataInput.dispatchEvent(new Event('change'));
 
-// ─── Formatação ────────────────────────────────────────────────────────────
-function fmt(v) {
-  return 'R$ ' + v.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+// ---- Atraso ----
+const atrasoPontual = document.getElementById('atraso-pontual');
+const atrasoLeve = document.getElementById('atraso-leve');
+const atrasoGrave = document.getElementById('atraso-grave');
+const atrasoInfo = document.getElementById('atrasoInfo');
+
+function selecionarAtraso(tipo){
+  atrasoSelecionado = tipo;
+  // Reset classes
+  [atrasoPontual, atrasoLeve, atrasoGrave].forEach(el=>{
+    el.classList.remove('active','atraso-ok','atraso-leve','atraso-grave');
+  });
+  
+  if(tipo === 'pontual'){
+    atrasoPontual.classList.add('active','atraso-ok');
+    atrasoInfo.style.display = 'block';
+    atrasoInfo.className = 'atraso-info info-ok';
+    atrasoInfo.innerHTML = '✅ <b>Sem desconto.</b> Chegou no horário, recebe o valor normal (fixo R$100 ou entregas, o que for maior).';
+  } else if(tipo === 'leve'){
+    atrasoLeve.classList.add('active','atraso-leve');
+    atrasoInfo.style.display = 'block';
+    atrasoInfo.className = 'atraso-info info-leve';
+    atrasoInfo.innerHTML = '⚠️ <b>Desconto de R$10</b> na diária caso não tenha feito R$100 em entregas. Se fez R$100+ em entregas, recebe o valor das entregas normalmente.';
+  } else {
+    atrasoGrave.classList.add('active','atraso-grave');
+    atrasoInfo.style.display = 'block';
+    atrasoInfo.className = 'atraso-info info-grave';
+    atrasoInfo.innerHTML = '🚫 <b>Sem diária fixa.</b> Recebe apenas o valor das entregas feitas, sem garantia de R$100.';
+  }
 }
 
-// ─── Semanas ───────────────────────────────────────────────────────────────
-function getSegundaDaSemana(dataStr) {
-  var d    = new Date(dataStr + 'T12:00:00');
-  var dia  = d.getDay();
-  var diff = dia === 0 ? -6 : 1 - dia;
-  var seg  = new Date(d);
-  seg.setDate(d.getDate() + diff);
-  return seg;
+atrasoPontual.addEventListener('click', ()=>selecionarAtraso('pontual'));
+atrasoLeve.addEventListener('click', ()=>selecionarAtraso('leve'));
+atrasoGrave.addEventListener('click', ()=>selecionarAtraso('grave'));
+
+// Seleciona pontual por padrão
+selecionarAtraso('pontual');
+
+function fmt(v){
+  return 'R$ ' + v.toLocaleString('pt-BR', {minimumFractionDigits:2, maximumFractionDigits:2});
 }
 
-function fmtDia(d) {
-  return d.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' });
+// ---- Cálculo do ganho com atraso ----
+function calcularGanhoDia(valorEntregas, atraso){
+  let ganhoBruto, desconto = 0, regra = '';
+
+  if(atraso === 'pontual'){
+    // Sem desconto: recebe o maior entre fixo e entregas
+    ganhoBruto = Math.max(FIXO, valorEntregas);
+    regra = 'normal';
+  } else if(atraso === 'leve'){
+    // Se fez R$100+ em entregas, recebe entregas normalmente
+    if(valorEntregas >= FIXO){
+      ganhoBruto = valorEntregas;
+      regra = 'entregas acima do fixo';
+    } else {
+      // Não fez R$100, recebe fixo - R$10
+      ganhoBruto = FIXO;
+      desconto = 10;
+      regra = 'fixo com desconto -R$10';
+    }
+  } else { // grave
+    // Recebe apenas o valor das entregas, sem fixo
+    ganhoBruto = valorEntregas;
+    desconto = 0;
+    regra = 'sem diária, só entregas';
+  }
+
+  return { ganhoBruto, desconto, ganhoFinal: ganhoBruto - desconto, regra };
 }
 
-function agruparPorSemana(lista) {
-  var grupos = {};
-  lista.forEach(function(e) {
-    var segunda = getSegundaDaSemana(e.data);
-    var key     = segunda.toISOString().slice(0, 10);
-    if (!grupos[key]) grupos[key] = { segunda: segunda, itens: [] };
+function getSegundaDaSemana(dataStr){
+  const d = new Date(dataStr + 'T12:00:00');
+  const dia = d.getDay(); // 0=dom...6=sab
+  const diff = dia === 0 ? -6 : 1 - dia; // volta até segunda
+  const segunda = new Date(d);
+  segunda.setDate(d.getDate() + diff);
+  return segunda;
+}
+function fmtDia(d){
+  return d.toLocaleDateString('pt-BR',{day:'2-digit',month:'2-digit'});
+}
+
+function agruparPorSemana(lista){
+  const grupos = {};
+  lista.forEach(e=>{
+    const segunda = getSegundaDaSemana(e.data);
+    const key = segunda.toISOString().slice(0,10);
+    if(!grupos[key]) grupos[key] = { segunda, itens: [] };
     grupos[key].itens.push(e);
   });
-  return Object.values(grupos).sort(function(a, b){ return b.segunda - a.segunda; });
+  return Object.values(grupos).sort((a,b)=> b.segunda - a.segunda);
 }
 
-function renderSemanas(lista) {
-  var container = document.getElementById('listaSemanas');
-  if (!lista.length) {
+function renderSemanas(lista){
+  const container = document.getElementById('listaSemanas');
+  if(!lista.length){
     container.innerHTML = '<div class="vazio">Sem dados ainda.</div>';
     return;
   }
-  var grupos = agruparPorSemana(lista);
-  container.innerHTML = grupos.map(function(g) {
-    var domingo  = new Date(g.segunda);
-    domingo.setDate(g.segunda.getDate() + 6);
-    var itens      = g.itens;
-    var dias       = itens.length;
-    var entregas   = itens.reduce(function(s,e){ return s+e.entregas; }, 0);
-    var km         = itens.reduce(function(s,e){ return s+e.km; }, 0);
-    var litros     = itens.reduce(function(s,e){ return s+(e.litros||0); }, 0);
-    var custoComb  = itens.reduce(function(s,e){ return s+e.custoComb; }, 0);
-    var custoManut = itens.reduce(function(s,e){ return s+e.custoManut; }, 0);
-    var lucro      = itens.reduce(function(s,e){ return s+e.lucroLiquido; }, 0);
-    var mediaLucroDia  = lucro / dias;
-    var mediaLitrosDia = litros / dias;
-    var precoMedio     = litros > 0 ? custoComb / litros : 0;
+  const grupos = agruparPorSemana(lista);
+  container.innerHTML = grupos.map(g=>{
+    const domingo = new Date(g.segunda);
+    domingo.setDate(g.segunda.getDate()+6);
+    const itens = g.itens;
+    const dias = itens.length;
+    const entregas = itens.reduce((s,e)=>s+e.entregas,0);
+    const km = itens.reduce((s,e)=>s+e.km,0);
+    const litros = itens.reduce((s,e)=>s+(e.litros||0),0);
+    const custoComb = itens.reduce((s,e)=>s+e.custoComb,0);
+    const custoManut = itens.reduce((s,e)=>s+e.custoManut,0);
+    const lucro = itens.reduce((s,e)=>s+e.lucroLiquido,0);
+    // Valor total a receber = soma do ganho do dia de cada entry (ganhoDia = ganhoFinal)
+    const totalReceber = itens.reduce((s,e)=>s+(e.ganhoFinal || e.ganhoDia || 0),0);
+    const totalDescontos = itens.reduce((s,e)=>s+(e.desconto || 0),0);
+    const diasComAtraso = itens.filter(e=>e.atraso && e.atraso !== 'pontual').length;
+    const mediaLucroDia = lucro/dias;
+    const mediaLitrosAbastecida = litros/dias;
+    const precoMedio = litros>0 ? custoComb/litros : 0;
 
-    return '<div class="semana">'
-      + '<div class="semana-topo">'
-      +   '<span class="semana-periodo">' + fmtDia(g.segunda) + ' \u2013 ' + fmtDia(domingo) + '</span>'
-      +   '<span class="semana-lucro">' + fmt(lucro) + '</span>'
-      + '</div>'
-      + '<div class="semana-grid">'
-      +   '<div class="semana-item"><span>Dias trabalhados</span><b>' + dias + '</b></div>'
-      +   '<div class="semana-item"><span>Entregas</span><b>' + entregas + '</b></div>'
-      +   '<div class="semana-item"><span>Km rodados</span><b>' + km.toFixed(0) + '</b></div>'
-      +   '<div class="semana-item"><span>Litros</span><b>' + litros.toFixed(1) + 'L</b></div>'
-      +   '<div class="semana-item"><span>Gasto combustível</span><b>' + fmt(custoComb) + '</b></div>'
-      +   '<div class="semana-item"><span>Manutenção</span><b>' + fmt(custoManut) + '</b></div>'
-      +   '<div class="semana-item"><span>Preço médio/L</span><b>' + fmt(precoMedio) + '</b></div>'
-      +   '<div class="semana-item"><span>Média litros/dia</span><b>' + mediaLitrosDia.toFixed(1) + 'L</b></div>'
-      + '</div>'
-      + '<div class="semana-media">Média de lucro por dia trabalhado: <b>' + fmt(mediaLucroDia) + '</b></div>'
-      + '</div>';
+    let atrasoHtml = '';
+    if(diasComAtraso > 0){
+      atrasoHtml = `<div class="semana-item"><span>Dias com atraso</span><b style="color:var(--vermelho)">${diasComAtraso}</b></div>`;
+    }
+    if(totalDescontos > 0){
+      atrasoHtml += `<div class="semana-item"><span>Descontos atraso</span><b style="color:var(--vermelho)">-${fmt(totalDescontos)}</b></div>`;
+    }
+
+    return `<div class="semana">
+      <div class="semana-topo">
+        <span class="semana-periodo">${fmtDia(g.segunda)} - ${fmtDia(domingo)}</span>
+        <span class="semana-lucro">${fmt(lucro)}</span>
+      </div>
+      <div class="semana-receber">
+        <span>💰 Total a receber</span>
+        <b>${fmt(totalReceber)}</b>
+      </div>
+      <div class="semana-receber-sub">Valor bruto que o lanche paga, sem descontar gasolina/manutenção</div>
+      <div class="semana-grid" style="margin-top:10px;">
+        <div class="semana-item"><span>Dias trabalhados</span><b>${dias}</b></div>
+        <div class="semana-item"><span>Entregas</span><b>${entregas}</b></div>
+        <div class="semana-item"><span>Km rodados</span><b>${km.toFixed(0)}</b></div>
+        <div class="semana-item"><span>Litros</span><b>${litros.toFixed(1)}L</b></div>
+        <div class="semana-item"><span>Gasto combustível</span><b>${fmt(custoComb)}</b></div>
+        <div class="semana-item"><span>Manutenção</span><b>${fmt(custoManut)}</b></div>
+        <div class="semana-item"><span>Preço médio/L</span><b>${fmt(precoMedio)}</b></div>
+        <div class="semana-item"><span>Média litros/dia</span><b>${mediaLitrosAbastecida.toFixed(1)}L</b></div>
+        ${atrasoHtml}
+      </div>
+      <div class="semana-media">Média de lucro por dia trabalhado: <b>${fmt(mediaLucroDia)}</b></div>
+    </div>`;
   }).join('');
 }
 
-// ─── Histórico ─────────────────────────────────────────────────────────────
-function renderHistorico(lista) {
-  var container = document.getElementById('listaHistorico');
-  var totais    = document.getElementById('totais');
-  var totais2   = document.getElementById('totais2');
-
-  if (!lista.length) {
-    container.innerHTML   = '<div class="vazio">Nenhum dia salvo ainda.</div>';
-    totais.style.display  = 'none';
-    totais2.style.display = 'none';
-    return;
-  }
-
-  var ordenada = lista.slice().sort(function(a, b){ return b.data.localeCompare(a.data); });
-  container.innerHTML = ordenada.map(function(e) {
-    var dataFmt = new Date(e.data + 'T12:00:00')
-      .toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' });
-    return '<div class="entry">'
-      + '<div class="info">'
-      +   '<b>' + dataFmt + ' \u00b7 ' + e.entregas + ' entregas</b>'
-      +   '<span>' + e.km + ' km \u00b7 taxa R$' + e.rate.toFixed(2) + ' \u00b7 gasolina R$' + (e.precoGas||6.55).toFixed(2) + '/L</span>'
-      + '</div>'
-      + '<div class="valor"><b>' + fmt(e.lucroLiquido) + '</b></div>'
-      + '<button class="del" data-id="' + e.id + '" title="excluir">\u2715</button>'
-      + '</div>';
-  }).join('');
-
-  var totKm       = lista.reduce(function(s,e){ return s+e.km; }, 0);
-  var totLucro    = lista.reduce(function(s,e){ return s+e.lucroLiquido; }, 0);
-  var totEntregas = lista.reduce(function(s,e){ return s+e.entregas; }, 0);
-  var totLitros   = lista.reduce(function(s,e){ return s+(e.litros||0); }, 0);
-  var totComb     = lista.reduce(function(s,e){ return s+e.custoComb; }, 0);
-
-  document.getElementById('totDias').textContent     = lista.length;
-  document.getElementById('totKm').textContent       = totKm.toFixed(0);
-  document.getElementById('totLucro').textContent    = 'R$' + totLucro.toFixed(0);
-  document.getElementById('totEntregas').textContent = totEntregas.toFixed(0);
-  document.getElementById('totLitros').textContent   = totLitros.toFixed(1) + 'L';
-  document.getElementById('totComb').textContent     = 'R$' + totComb.toFixed(0);
-  totais.style.display  = 'flex';
-  totais2.style.display = 'flex';
-
-  container.querySelectorAll('.del').forEach(function(btn) {
-    btn.addEventListener('click', function() {
-      var lista2 = carregarHistorico().filter(function(e){ return e.id !== btn.dataset.id; });
-      salvarHistorico(lista2);
-      renderHistorico(lista2);
-      renderSemanas(lista2);
-      showToast('Entrada removida', 'var(--vermelho)');
-    });
-  });
-}
-
-// ─── Calcular ──────────────────────────────────────────────────────────────
-document.getElementById('btnCalc').addEventListener('click', function() {
-  var entregas = parseFloat(document.getElementById('entregas').value) || 0;
-  var km       = parseFloat(document.getElementById('km').value)       || 0;
-
-  if (!rateSelecionada) {
+document.getElementById('btnCalc').addEventListener('click', ()=>{
+  const entregas = parseFloat(document.getElementById('entregas').value) || 0;
+  const km = parseFloat(document.getElementById('km').value) || 0;
+  if(!rateSelecionada){
     alert('Selecione a faixa de taxa (terça a quinta ou sexta a domingo).');
     return;
   }
 
-  var precoGas     = parseFloat(document.getElementById('precoGas').value) || 6.55;
-  var valorEntregas = entregas * rateSelecionada;
-  var ganhoDia      = Math.max(FIXO, valorEntregas);
-  var litros        = km / FUEL_EFF;
-  var custoComb     = litros * precoGas;
-  var custoManut    = km * MAINT_KM;
-  var custoTotal    = custoComb + custoManut;
-  var lucroLiquido  = ganhoDia - custoTotal;
-  var porEntrega    = entregas > 0 ? ganhoDia / entregas : 0;
-  var custoKm       = km > 0 ? custoTotal / km : 0;
-  var lucroKm       = km > 0 ? lucroLiquido / km : 0;
-  var pctCusto      = ganhoDia > 0 ? (custoTotal / ganhoDia) * 100 : 0;
+  const precoGas = parseFloat(document.getElementById('precoGas').value) || 6.55;
 
-  document.getElementById('bdEntregas').textContent   = fmt(valorEntregas);
-  document.getElementById('bdGanho').textContent      = fmt(ganhoDia);
-  document.getElementById('bdLitros').textContent     = litros.toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2}) + ' L';
-  document.getElementById('bdComb').textContent       = fmt(custoComb);
-  document.getElementById('bdManut').textContent      = fmt(custoManut);
+  const valorEntregas = entregas * rateSelecionada;
+  
+  // Calcular ganho com sistema de atraso
+  const resultado = calcularGanhoDia(valorEntregas, atrasoSelecionado);
+  const ganhoBruto = resultado.ganhoBruto;
+  const desconto = resultado.desconto;
+  const ganhoDia = resultado.ganhoFinal;
+  
+  const litros = km / FUEL_EFF;
+  const custoComb = litros * precoGas;
+  const custoManut = km * MAINT_KM;
+  const custoTotal = custoComb + custoManut;
+  const lucroLiquido = ganhoDia - custoTotal;
+  const porEntrega = entregas > 0 ? ganhoDia / entregas : 0;
+  const custoKm = km > 0 ? custoTotal / km : 0;
+  const lucroKm = km > 0 ? lucroLiquido / km : 0;
+  const pctCusto = ganhoDia > 0 ? (custoTotal / ganhoDia) * 100 : 0;
+
+  document.getElementById('bdEntregas').textContent = fmt(valorEntregas);
+  document.getElementById('bdGanhoBruto').textContent = fmt(ganhoBruto);
+  
+  // Mostrar/esconder linha de desconto
+  const linhaDesconto = document.getElementById('linhaDesconto');
+  if(desconto > 0){
+    linhaDesconto.style.display = 'flex';
+    document.getElementById('bdDesconto').textContent = '-' + fmt(desconto);
+  } else {
+    linhaDesconto.style.display = 'none';
+  }
+  
+  document.getElementById('bdGanho').textContent = fmt(ganhoDia);
+  document.getElementById('bdLitros').textContent = litros.toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2}) + ' L';
+  document.getElementById('bdComb').textContent = fmt(custoComb);
+  document.getElementById('bdManut').textContent = fmt(custoManut);
   document.getElementById('bdCustoTotal').textContent = fmt(custoTotal);
-  document.getElementById('bdLucro').textContent      = fmt(lucroLiquido);
-  document.getElementById('lucroLiquido').textContent  = fmt(lucroLiquido);
-  document.getElementById('bdPorEntrega').textContent  = fmt(porEntrega);
-  document.getElementById('bdCustoKm').textContent    = fmt(custoKm);
-  document.getElementById('bdLucroKm').textContent    = fmt(lucroKm);
-  document.getElementById('bdPctCusto').textContent   = pctCusto.toFixed(1) + '%';
+  document.getElementById('bdLucro').textContent = fmt(lucroLiquido);
+  document.getElementById('lucroLiquido').textContent = fmt(lucroLiquido);
+  document.getElementById('bdPorEntrega').textContent = fmt(porEntrega);
+  document.getElementById('bdCustoKm').textContent = fmt(custoKm);
+  document.getElementById('bdLucroKm').textContent = fmt(lucroKm);
+  document.getElementById('bdPctCusto').textContent = pctCusto.toFixed(1) + '%';
 
-  var pctAcimaFixo = valorEntregas > FIXO
-    ? Math.min(100, (valorEntregas / FIXO) * 50)
-    : (valorEntregas / FIXO) * 100;
-  document.getElementById('barraFill').style.width  = Math.min(100, pctAcimaFixo) + '%';
-  document.getElementById('barraTexto').textContent = valorEntregas > FIXO
-    ? ('+' + fmt(valorEntregas - FIXO) + ' acima do fixo')
-    : 'dentro do fixo';
+  // Barra de progresso baseada no ganho final
+  const pctBarra = atrasoSelecionado === 'grave'
+    ? Math.min(100, (valorEntregas / FIXO) * 100)
+    : (valorEntregas > FIXO ? Math.min(100, (valorEntregas/FIXO)*50) : (valorEntregas/FIXO)*100);
+  document.getElementById('barraFill').style.width = Math.min(100, pctBarra) + '%';
+  
+  let barraTexto = '';
+  if(atrasoSelecionado === 'grave'){
+    barraTexto = 'sem diária, só entregas';
+  } else if(atrasoSelecionado === 'leve' && valorEntregas < FIXO){
+    barraTexto = 'fixo -R$10 (atraso)';
+  } else {
+    barraTexto = valorEntregas > FIXO
+      ? ('+' + fmt(valorEntregas-FIXO) + ' acima do fixo')
+      : 'dentro do fixo';
+  }
+  document.getElementById('barraTexto').textContent = barraTexto;
 
   document.getElementById('resultado').classList.add('show');
 
@@ -561,61 +642,111 @@ document.getElementById('btnCalc').addEventListener('click', function() {
     id: 'e_' + Date.now(),
     data: dataInput.value,
     rate: rateSelecionada,
-    entregas: entregas, km: km, precoGas: precoGas, litros: litros,
-    valorEntregas: valorEntregas, ganhoDia: ganhoDia,
-    custoComb: custoComb, custoManut: custoManut,
-    custoTotal: custoTotal, lucroLiquido: lucroLiquido
+    atraso: atrasoSelecionado,
+    entregas, km, precoGas, litros,
+    valorEntregas, ganhoBruto, desconto, ganhoFinal: ganhoDia, ganhoDia,
+    custoComb, custoManut, custoTotal, lucroLiquido
   };
 
-  salvarConfig({ precoGas: precoGas });
+  window.storage.set('config', JSON.stringify({precoGas}), false).catch(()=>{});
 });
 
-// ─── Salvar no histórico ───────────────────────────────────────────────────
-document.getElementById('btnSalvar').addEventListener('click', function() {
-  if (!ultimoCalculo) return;
+// ---- storage ----
+async function carregarHistorico(){
+  try{
+    const res = await window.storage.get('entries', false);
+    return res && res.value ? JSON.parse(res.value) : [];
+  }catch(e){
+    return [];
+  }
+}
+async function salvarHistorico(lista){
+  try{
+    await window.storage.set('entries', JSON.stringify(lista), false);
+    return true;
+  }catch(e){
+    return false;
+  }
+}
 
-  var btn   = document.getElementById('btnSalvar');
-  var lista = carregarHistorico();
-
-  // Detecta registro duplicado na mesma data
-  var duplicado = lista.find(function(e){ return e.data === ultimoCalculo.data; });
-  if (duplicado) {
-    var dataLegivel = new Date(ultimoCalculo.data + 'T12:00:00')
-      .toLocaleDateString('pt-BR');
-    var confirmar = confirm('Já existe um registro para ' + dataLegivel + '.\nDeseja substituir?');
-    if (!confirmar) return;
-    var filtrado = lista.filter(function(e){ return e.data !== ultimoCalculo.data; });
-    filtrado.push(ultimoCalculo);
-    var ok2 = salvarHistorico(filtrado);
-    renderHistorico(filtrado);
-    renderSemanas(filtrado);
-    showToast(ok2 ? 'Registro atualizado ✓' : 'Erro ao salvar', ok2 ? 'var(--verde)' : 'var(--vermelho)');
+function renderHistorico(lista){
+  const container = document.getElementById('listaHistorico');
+  const totais = document.getElementById('totais');
+  if(!lista.length){
+    container.innerHTML = '<div class="vazio">Nenhum dia salvo ainda.</div>';
+    totais.style.display = 'none';
+    document.getElementById('totais2').style.display = 'none';
     return;
   }
+  const ordenada = [...lista].sort((a,b)=> b.data.localeCompare(a.data));
+  container.innerHTML = ordenada.map(e=>{
+    const dataFmt = new Date(e.data+'T12:00:00').toLocaleDateString('pt-BR',{day:'2-digit',month:'2-digit'});
+    // Badge de atraso
+    let badgeHtml = '';
+    if(e.atraso === 'leve'){
+      badgeHtml = '<span class="atraso-badge badge-leve">ATRASO -R$10</span>';
+    } else if(e.atraso === 'grave'){
+      badgeHtml = '<span class="atraso-badge badge-grave">SÓ ENTREGAS</span>';
+    }
+    return `<div class="entry">
+      <div class="info">
+        <b>${dataFmt} · ${e.entregas} entregas ${badgeHtml}</b>
+        <span>${e.km} km · taxa R$${e.rate.toFixed(2)} · gasolina R$${(e.precoGas||6.55).toFixed(2)}/L</span>
+      </div>
+      <div class="valor">
+        <b>${fmt(e.lucroLiquido)}</b>
+      </div>
+      <button class="del" data-id="${e.id}" title="excluir">🗑</button>
+    </div>`;
+  }).join('');
 
+  const totKm = lista.reduce((s,e)=>s+e.km,0);
+  const totLucro = lista.reduce((s,e)=>s+e.lucroLiquido,0);
+  const totEntregas = lista.reduce((s,e)=>s+e.entregas,0);
+  const totLitros = lista.reduce((s,e)=>s+(e.litros||0),0);
+  const totComb = lista.reduce((s,e)=>s+e.custoComb,0);
+  document.getElementById('totDias').textContent = lista.length;
+  document.getElementById('totKm').textContent = totKm.toFixed(0);
+  document.getElementById('totLucro').textContent = 'R$' + totLucro.toFixed(0);
+  document.getElementById('totEntregas').textContent = totEntregas.toFixed(0);
+  document.getElementById('totLitros').textContent = totLitros.toFixed(1) + 'L';
+  document.getElementById('totComb').textContent = 'R$' + totComb.toFixed(0);
+  totais.style.display = 'flex';
+  document.getElementById('totais2').style.display = 'flex';
+
+  container.querySelectorAll('.del').forEach(btn=>{
+    btn.addEventListener('click', async ()=>{
+      const lista2 = (await carregarHistorico()).filter(e=>e.id!==btn.dataset.id);
+      await salvarHistorico(lista2);
+      renderHistorico(lista2);
+      renderSemanas(lista2);
+    });
+  });
+}
+
+document.getElementById('btnSalvar').addEventListener('click', async ()=>{
+  if(!ultimoCalculo) return;
+  const btn = document.getElementById('btnSalvar');
+  btn.disabled = true;
+  btn.textContent = 'Salvando.';
+  const lista = await carregarHistorico();
   lista.push(ultimoCalculo);
-  var ok = salvarHistorico(lista);
+  const ok = await salvarHistorico(lista);
   renderHistorico(lista);
   renderSemanas(lista);
-
-  if (ok) {
-    btn.disabled    = true;
-    btn.textContent = 'Salvo ✓';
-    showToast('Dia salvo com sucesso ✓');
-    setTimeout(function(){
-      btn.disabled    = false;
-      btn.textContent = 'Salvar no histórico';
-    }, 1500);
-  } else {
-    showToast('Erro ao salvar — armazenamento cheio?', 'var(--vermelho)');
-  }
+  btn.textContent = ok ? 'Salvo ✓' : 'Erro ao salvar';
+  setTimeout(()=>{ btn.disabled=false; btn.textContent='Salvar no histórico'; }, 1500);
 });
 
-// ─── Inicialização ─────────────────────────────────────────────────────────
-(function init() {
-  var cfg = carregarConfig();
-  if (cfg.precoGas) document.getElementById('precoGas').value = cfg.precoGas;
-  var lista = carregarHistorico();
+(async ()=>{
+  try{
+    const cfg = await window.storage.get('config', false);
+    if(cfg && cfg.value){
+      const parsed = JSON.parse(cfg.value);
+      if(parsed.precoGas) document.getElementById('precoGas').value = parsed.precoGas;
+    }
+  }catch(e){}
+  const lista = await carregarHistorico();
   renderHistorico(lista);
   renderSemanas(lista);
 })();
