@@ -648,23 +648,26 @@ document.getElementById('btnCalc').addEventListener('click', ()=>{
     custoComb, custoManut, custoTotal, lucroLiquido
   };
 
-  window.storage.set('config', JSON.stringify({precoGas}), false).catch(()=>{});
+  try{ localStorage.setItem(STORAGE_PREFIX + 'config', JSON.stringify({precoGas})); }catch(e){}
 });
 
-// ---- storage ----
+// ---- storage (localStorage: persiste no navegador quando hospedado fora do claude.ai) ----
+const STORAGE_PREFIX = 'painel-entregas:';
 async function carregarHistorico(){
   try{
-    const res = await window.storage.get('entries', false);
-    return res && res.value ? JSON.parse(res.value) : [];
+    const raw = localStorage.getItem(STORAGE_PREFIX + 'entries');
+    return raw ? JSON.parse(raw) : [];
   }catch(e){
+    console.error('Erro ao carregar histórico:', e);
     return [];
   }
 }
 async function salvarHistorico(lista){
   try{
-    await window.storage.set('entries', JSON.stringify(lista), false);
+    localStorage.setItem(STORAGE_PREFIX + 'entries', JSON.stringify(lista));
     return true;
   }catch(e){
+    console.error('Erro ao salvar histórico:', e);
     return false;
   }
 }
@@ -740,9 +743,9 @@ document.getElementById('btnSalvar').addEventListener('click', async ()=>{
 
 (async ()=>{
   try{
-    const cfg = await window.storage.get('config', false);
-    if(cfg && cfg.value){
-      const parsed = JSON.parse(cfg.value);
+    const raw = localStorage.getItem(STORAGE_PREFIX + 'config');
+    if(raw){
+      const parsed = JSON.parse(raw);
       if(parsed.precoGas) document.getElementById('precoGas').value = parsed.precoGas;
     }
   }catch(e){}
